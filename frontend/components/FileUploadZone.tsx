@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { Upload, FileSpreadsheet, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Upload, FileText, X } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 
 interface Props {
   file: File | null;
@@ -11,6 +11,7 @@ interface Props {
 
 export function FileUploadZone({ file, onFileChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTheme();
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -28,24 +29,34 @@ export function FileUploadZone({ file, onFileChange }: Props) {
 
   if (file) {
     return (
-      <div className="glass rounded-2xl p-5 flex items-center justify-between">
+      <div
+        className="rounded-[18px] p-5 flex items-center justify-between mb-4 theme-transition"
+        style={{ background: "var(--bg-surface)", border: "1px solid var(--accent)", borderStyle: "solid" }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-acid/10 flex items-center justify-center">
-            <FileSpreadsheet size={20} className="text-acid" />
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: "var(--accent-light)" }}
+          >
+            <FileText size={18} style={{ color: "var(--accent)" }} />
           </div>
           <div>
-            <p className="text-sm font-medium text-ink-100">{file.name}</p>
-            <p className="text-xs text-ink-400">
-              {(file.size / 1024).toFixed(0)} KB
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{file.name}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+              {(file.size / 1024).toFixed(0)} KB · {t("Ready to analyze", "جاهز للتحليل")}
             </p>
           </div>
         </div>
         <button
           onClick={() => onFileChange(null)}
-          className="text-ink-400 hover:text-coral transition-colors"
+          className="transition-colors"
+          style={{ color: "var(--text-tertiary)" }}
+          onMouseOver={(e) => (e.currentTarget.style.color = "var(--rose)")}
+          onMouseOut={(e)  => (e.currentTarget.style.color = "var(--text-tertiary)")}
         >
           <X size={16} />
         </button>
+        <input ref={inputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleChange} />
       </div>
     );
   }
@@ -55,29 +66,37 @@ export function FileUploadZone({ file, onFileChange }: Props) {
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
       onClick={() => inputRef.current?.click()}
-      className={cn(
-        "glass rounded-2xl border-2 border-dashed border-white/10 p-12",
-        "flex flex-col items-center justify-center gap-4 cursor-pointer",
-        "hover:border-acid/40 hover:bg-acid/3 transition-all group"
-      )}
+      className="rounded-[18px] p-14 flex flex-col items-center justify-center gap-4 text-center cursor-pointer mb-4 theme-transition group"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1.5px dashed var(--border-mid)",
+        transition: "all 0.18s ease, background var(--t-med), border-color var(--t-med)",
+      }}
+      onMouseOver={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+        (e.currentTarget as HTMLElement).style.background  = "var(--accent-light)";
+      }}
+      onMouseOut={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-mid)";
+        (e.currentTarget as HTMLElement).style.background  = "var(--bg-surface)";
+      }}
     >
-      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-acid/10 transition-colors">
-        <Upload size={24} className="text-ink-400 group-hover:text-acid transition-colors" />
+      <div
+        className="w-13 h-13 rounded-[14px] flex items-center justify-center"
+        style={{ background: "var(--bg-raised)", width: 52, height: 52 }}
+      >
+        <Upload size={20} style={{ color: "var(--text-tertiary)" }} />
       </div>
-      <div className="text-center">
-        <p className="text-sm font-medium text-ink-200">
-          Drop your file here, or{" "}
-          <span className="text-acid">browse</span>
+      <div>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          {t("Drop your file here, or ", "أسقط ملفك هنا، أو ")}
+          <span className="font-medium" style={{ color: "var(--accent)" }}>{t("browse", "تصفح")}</span>
         </p>
-        <p className="text-xs text-ink-500 mt-1">CSV, XLSX, XLS · Max 50 MB</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
+          {t("CSV, XLSX, XLS · Max 50 MB", "CSV, XLSX, XLS · الحجم الأقصى 50 ميجابايت")}
+        </p>
       </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".csv,.xlsx,.xls"
-        className="hidden"
-        onChange={handleChange}
-      />
+      <input ref={inputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleChange} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -7,51 +8,56 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["'Syne'", "sans-serif"],
-        body: ["'DM Sans'", "sans-serif"],
-        mono: ["'JetBrains Mono'", "monospace"],
+        display: ["'Fraunces'", "Georgia", "serif"],
+        body:    ["'Outfit'", "sans-serif"],
+        mono:    ["'JetBrains Mono'", "monospace"],
       },
       colors: {
-        ink: {
-          DEFAULT: "#0D0D0F",
-          50: "#F5F5F7",
-          100: "#E8E8EC",
-          200: "#C4C4CC",
-          300: "#9494A0",
-          400: "#64647A",
-          500: "#3C3C52",
-          900: "#0D0D0F",
+        /* semantic tokens that map to CSS vars */
+        base:    "var(--bg-base)",
+        surface: "var(--bg-surface)",
+        raised:  "var(--bg-raised)",
+
+        primary:   "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        tertiary:  "var(--text-tertiary)",
+
+        accent: {
+          DEFAULT: "var(--accent)",
+          light:   "var(--accent-light)",
         },
-        acid: {
-          DEFAULT: "#C8FA64",
-          dim: "#A8E040",
-        },
-        coral: "#FF6B6B",
-        sky: "#64C8FA",
+        gold:  "var(--gold)",
+        teal:  "var(--teal)",
+        rose:  "var(--rose)",
+      },
+      borderColor: {
+        dim:    "var(--border-dim)",
+        mid:    "var(--border-mid)",
+        bright: "var(--border-bright)",
       },
       animation: {
-        "fade-up": "fadeUp 0.5s ease forwards",
-        "fade-in": "fadeIn 0.4s ease forwards",
-        shimmer: "shimmer 1.5s infinite",
-        pulse2: "pulse2 2s ease-in-out infinite",
+        "rise":    "rise 0.55s ease both",
+        "shimmer": "shimmer 1.6s infinite",
+        "spin-slow":"spin 1.2s linear infinite",
+        "blink":   "blink 2.4s ease-in-out infinite",
+        "fade-up": "rise 0.5s ease both",
       },
       keyframes: {
-        fadeUp: {
-          "0%": { opacity: 0, transform: "translateY(20px)" },
-          "100%": { opacity: 1, transform: "translateY(0)" },
-        },
-        fadeIn: {
-          "0%": { opacity: 0 },
-          "100%": { opacity: 1 },
+        rise: {
+          "0%":   { opacity: "0", transform: "translateY(14px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "0%":   { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition:  "200% 0" },
         },
-        pulse2: {
-          "0%, 100%": { opacity: 0.6 },
-          "50%": { opacity: 1 },
+        blink: {
+          "0%,100%": { opacity: "0.5" },
+          "50%":     { opacity: "1" },
         },
+      },
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(.4,0,.2,1)",
       },
     },
   },

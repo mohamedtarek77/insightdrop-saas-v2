@@ -2,36 +2,34 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { BarChart2, RefreshCw, AlertCircle, DollarSign, TrendingUp, ShoppingCart } from "lucide-react";
+import { ThemeProvider, useTheme } from "@/lib/theme";
+import { Topbar } from "@/components/ui/Topbar";
 import { createClient } from "@/lib/supabase";
 import { analyzeFile, type AnalyticsResponse } from "@/lib/api";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { KpiCard } from "@/components/KpiCard";
 import { ExportButtons } from "@/components/ExportButtons";
-import { MonthlySalesChart } from "@/components/charts/MonthlySalesChart";
-import { TopProductsChart } from "@/components/charts/TopProductsChart";
-import { RegionSalesChart } from "@/components/charts/RegionSalesChart";
-import { CategoryChart } from "@/components/charts/CategoryChart";
+import { MonthlySalesChart }  from "@/components/charts/MonthlySalesChart";
+import { TopProductsChart }   from "@/components/charts/TopProductsChart";
+import { RegionSalesChart }   from "@/components/charts/RegionSalesChart";
+import { CategoryChart }      from "@/components/charts/CategoryChart";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import {
-  TrendingUp, DollarSign, ShoppingCart, BarChart2,
-  LogOut, RefreshCw, AlertCircle,
-} from "lucide-react";
 
 type Stage = "idle" | "loading" | "done" | "error";
 
-export default function DashboardPage() {
-  const router = useRouter();
+function DashboardContent() {
+  const router   = useRouter();
   const supabase = createClient();
+  const { t }    = useTheme();
 
-  const [stage, setStage]       = useState<Stage>("idle");
-  const [result, setResult]     = useState<AnalyticsResponse | null>(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [file, setFile]         = useState<File | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [stage,     setStage]     = useState<Stage>("idle");
+  const [result,    setResult]    = useState<AnalyticsResponse | null>(null);
+  const [errorMsg,  setErrorMsg]  = useState("");
+  const [file,      setFile]      = useState<File | null>(null);
+  const [progress,  setProgress]  = useState(0);
   const [userEmail, setUserEmail] = useState("");
-
-  // Keep a ref to file so export buttons can always access the latest
   const fileRef = useRef<File | null>(null);
   useEffect(() => { fileRef.current = file; }, [file]);
 
@@ -47,192 +45,177 @@ export default function DashboardPage() {
     setStage("loading");
     setProgress(0);
     setErrorMsg("");
-
     const tick = setInterval(() => {
       setProgress((p) => (p < 85 ? p + Math.random() * 12 : p));
-    }, 400);
-
+    }, 380);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) { router.push("/login"); return; }
-
       const data = await analyzeFile(file, token);
       clearInterval(tick);
       setProgress(100);
-      setTimeout(() => {
-        setResult(data);
-        setStage("done");
-      }, 300);
+      setTimeout(() => { setResult(data); setStage("done"); }, 300);
     } catch (err: unknown) {
       clearInterval(tick);
-      setErrorMsg(err instanceof Error ? err.message : "Analysis failed.");
+      setErrorMsg(err instanceof Error ? err.message : t("Analysis failed.", "فشل التحليل."));
       setStage("error");
     }
   }, [file]);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/");
-  }
-
   function handleReset() {
-    setStage("idle");
-    setFile(null);
-    setResult(null);
-    setProgress(0);
-    setErrorMsg("");
+    setStage("idle"); setFile(null); setResult(null); setProgress(0); setErrorMsg("");
   }
 
   return (
-    <div className="min-h-screen bg-ink">
-      {/* Nav */}
-      <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between max-w-7xl mx-auto">
-        <span className="font-display font-bold text-lg">
-          Insight<span className="text-acid">Drop</span>
-        </span>
-        <div className="flex items-center gap-4">
-          <span className="text-ink-400 text-xs hidden sm:block">{userEmail}</span>
-          {stage === "done" && (
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 text-xs text-ink-300 hover:text-ink-50 transition-colors"
-            >
-              <RefreshCw size={14} /> New analysis
-            </button>
-          )}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-ink-400 hover:text-coral transition-colors"
-          >
-            <LogOut size={14} /> Sign out
-          </button>
-        </div>
-      </nav>
+    <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
+      <Topbar userEmail={userEmail} showDashNav />
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-6 pt-20 pb-16">
 
-        {/* ── IDLE / UPLOAD ── */}
+        {/* ── IDLE / ERROR ── */}
         {(stage === "idle" || stage === "error") && (
-          <div className="max-w-2xl mx-auto animate-fade-up">
-            <h1 className="font-display font-bold text-3xl mb-2">
-              Analyze your sales data
+          <div className="max-w-[600px] mx-auto animate-rise">
+            <h1 className="font-display font-bold text-3xl tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>
+              {t("Analyze your sales data", "حلّل بيانات مبيعاتك")}
             </h1>
-            <p className="text-ink-400 text-sm mb-8">
-              Upload a CSV or Excel file. Your data is processed in-memory and{" "}
-              <strong className="text-ink-200">never stored</strong>.
+            <p className="text-sm font-light mb-8" style={{ color: "var(--text-secondary)" }}>
+              {t("Upload a CSV or Excel file. Processed in-memory — ", "ارفع ملف CSV أو Excel. يُعالَج في الذاكرة — ")}
+              <strong style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                {t("never stored.", "لا يُحفظ أبدًا.")}
+              </strong>
             </p>
 
             <FileUploadZone file={file} onFileChange={setFile} />
 
             {stage === "error" && (
-              <div className="mt-4 flex items-start gap-3 bg-coral/10 border border-coral/20 rounded-xl px-4 py-3">
-                <AlertCircle size={16} className="text-coral mt-0.5 shrink-0" />
-                <p className="text-coral text-sm">{errorMsg}</p>
+              <div className="flex items-start gap-3 rounded-xl px-4 py-3 mb-4 text-sm"
+                style={{ background: "var(--rose-bg)", border: "1px solid rgba(240,96,128,.2)", color: "var(--rose)" }}>
+                <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                {errorMsg}
               </div>
             )}
 
-            <button
-              onClick={handleAnalyze}
-              disabled={!file}
-              className="mt-6 w-full flex items-center justify-center gap-2 bg-acid text-ink font-semibold py-4 rounded-xl text-base hover:bg-acid-dim transition-all disabled:opacity-40 disabled:cursor-not-allowed acid-glow"
-            >
-              <BarChart2 size={18} />
-              Start Analysis
-            </button>
-
-            <div className="mt-6 glass rounded-xl p-4">
-              <p className="text-xs text-ink-500 font-mono mb-2">Required columns:</p>
+            {/* Schema box */}
+            <div className="rounded-[14px] p-4 mb-5 theme-transition"
+              style={{ background: "var(--bg-surface)", border: "1px solid var(--border-dim)" }}>
+              <p className="font-mono text-xs mb-3" style={{ color: "var(--text-tertiary)" }}>
+                {t("Required columns:", "الأعمدة المطلوبة:")}
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {["order_id","product_name","category","quantity","price","cost","order_date","region"].map(c => (
-                  <span key={c} className="text-xs font-mono bg-white/5 px-2 py-1 rounded text-ink-300">
+                  <span key={c} className="font-mono text-xs px-2 py-1 rounded-md theme-transition"
+                    style={{ background: "var(--bg-raised)", border: "1px solid var(--border-dim)", color: "var(--text-secondary)" }}>
                     {c}
                   </span>
                 ))}
               </div>
             </div>
+
+            <button
+              onClick={handleAnalyze}
+              disabled={!file}
+              className="w-full flex items-center justify-center gap-2.5 font-semibold py-4 rounded-[14px] text-white text-base transition-all disabled:opacity-35 disabled:cursor-not-allowed accent-glow"
+              style={{ background: "var(--accent)" }}
+            >
+              <BarChart2 size={18} />
+              {t("Start Analysis", "ابدأ التحليل")}
+            </button>
           </div>
         )}
 
         {/* ── LOADING ── */}
         {stage === "loading" && (
-          <div className="max-w-2xl mx-auto animate-fade-up text-center">
-            <div className="glass rounded-2xl p-10 mb-8">
-              <div className="w-16 h-16 rounded-full bg-acid/10 border-2 border-acid/30 flex items-center justify-center mx-auto mb-6 animate-pulse2">
-                <BarChart2 size={28} className="text-acid" />
-              </div>
-              <h2 className="font-display font-bold text-2xl mb-2">Crunching your numbers…</h2>
-              <p className="text-ink-400 text-sm mb-6">
-                Running ETL, computing KPIs, preparing charts
+          <div className="max-w-[600px] mx-auto text-center animate-rise">
+            <div className="rounded-[22px] p-10 mb-6 theme-transition"
+              style={{ background: "var(--bg-surface)", border: "1px solid var(--border-dim)" }}>
+              <div
+                className="w-16 h-16 rounded-full mx-auto mb-6 animate-spin-slow"
+                style={{ border: "2px solid var(--border-dim)", borderTopColor: "var(--accent)" }}
+              />
+              <h2 className="font-display font-bold text-2xl mb-2" style={{ color: "var(--text-primary)" }}>
+                {t("Crunching your numbers…", "جارٍ تحليل بياناتك…")}
+              </h2>
+              <p className="text-sm font-light mb-6" style={{ color: "var(--text-secondary)" }}>
+                {t("Running ETL · Computing KPIs · Preparing charts", "تشغيل ETL · حساب المؤشرات · تحضير الرسوم البيانية")}
               </p>
-              <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full rounded-full h-1 overflow-hidden mb-2" style={{ background: "var(--bg-raised)" }}>
                 <div
-                  className="h-full bg-acid rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%`, background: "var(--accent)" }}
                 />
               </div>
-              <p className="text-ink-500 text-xs mt-2 font-mono">{Math.round(progress)}%</p>
+              <p className="font-mono text-xs" style={{ color: "var(--text-tertiary)" }}>
+                {Math.round(progress)}%
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
             </div>
           </div>
         )}
 
         {/* ── RESULTS ── */}
         {stage === "done" && result && (
-          <div className="animate-fade-up space-y-6">
+          <div className="animate-rise space-y-5">
 
-            {/* Header + export row */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
               <div>
-                <h1 className="font-display font-bold text-2xl">Analysis complete</h1>
-                <p className="text-ink-400 text-xs mt-0.5">
-                  {formatNumber(result.meta.rows_processed)} rows ·{" "}
+                <h1 className="font-display font-bold text-2xl tracking-tight" style={{ color: "var(--text-primary)" }}>
+                  {t("Analysis complete", "اكتمل التحليل")}
+                </h1>
+                <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
+                  {formatNumber(result.meta.rows_processed)} {t("rows", "صف")} ·{" "}
                   {result.meta.date_range.start} → {result.meta.date_range.end} ·{" "}
-                  <span className="text-acid">Data not stored</span>
+                  <span
+                    className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-md"
+                    style={{ background: "var(--teal-bg)", color: "var(--teal)", border: "1px solid rgba(64,208,176,.2)" }}
+                  >
+                    🔒 {t("Data not stored", "البيانات غير محفوظة")}
+                  </span>
                 </p>
               </div>
 
-              {/* ── EXPORT BUTTONS ── */}
-              {file && <ExportButtons file={file} />}
+              <div className="flex flex-col gap-3 sm:items-end">
+                {file && <ExportButtons file={file} />}
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg self-start sm:self-auto theme-transition"
+                  style={{ color: "var(--text-secondary)", background: "var(--bg-surface)", border: "1px solid var(--border-mid)" }}
+                >
+                  <RefreshCw size={12} /> {t("New analysis", "تحليل جديد")}
+                </button>
+              </div>
             </div>
 
-            {/* KPI grid */}
+            {/* KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                label="Total Revenue"
+                label={t("Total Revenue",    "إجمالي الإيرادات")}
                 value={formatCurrency(result.kpis.total_revenue)}
-                icon={<DollarSign size={18} />}
-                accent="acid"
-                delay={0}
+                emoji="💰" colorVar="--gold" bgVar="--gold-bg" delay={0}
               />
               <KpiCard
-                label="Total Profit"
+                label={t("Total Profit",     "إجمالي الأرباح")}
                 value={formatCurrency(result.kpis.total_profit)}
-                sub={`${result.kpis.profit_margin_pct}% margin`}
-                icon={<TrendingUp size={18} />}
-                accent="sky"
-                delay={1}
+                sub={`${result.kpis.profit_margin_pct}% ${t("margin","هامش")}`}
+                emoji="📈" colorVar="--teal" bgVar="--teal-bg" delay={1}
               />
               <KpiCard
-                label="Total Orders"
+                label={t("Total Orders",     "إجمالي الطلبات")}
                 value={formatNumber(result.kpis.total_orders)}
-                icon={<ShoppingCart size={18} />}
-                accent="coral"
-                delay={2}
+                emoji="🛒" colorVar="--rose" bgVar="--rose-bg" delay={2}
               />
               <KpiCard
-                label="Avg Order Value"
+                label={t("Avg Order Value",  "متوسط قيمة الطلب")}
                 value={formatCurrency(result.kpis.avg_order_value)}
-                icon={<BarChart2 size={18} />}
-                accent="acid"
-                delay={3}
+                emoji="📊" colorVar="--accent" bgVar="--accent-light" delay={3}
               />
             </div>
 
-            {/* Charts grid */}
-            <div className="grid lg:grid-cols-2 gap-6">
+            {/* Charts */}
+            <div className="grid lg:grid-cols-2 gap-5">
               <MonthlySalesChart data={result.charts.monthly_sales} />
               <TopProductsChart  data={result.charts.top_products} />
               <RegionSalesChart  data={result.charts.region_sales} />
@@ -242,5 +225,13 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ThemeProvider>
+      <DashboardContent />
+    </ThemeProvider>
   );
 }

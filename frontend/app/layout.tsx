@@ -14,16 +14,32 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,700&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
+        {/* Inject theme + lang script before paint to avoid FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var t = localStorage.getItem('id-theme') || 'dark';
+                  var l = localStorage.getItem('id-lang')  || 'en';
+                  document.documentElement.setAttribute('data-theme', t);
+                  document.documentElement.setAttribute('lang', l);
+                  document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr');
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="font-body bg-ink text-ink-50 antialiased">{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

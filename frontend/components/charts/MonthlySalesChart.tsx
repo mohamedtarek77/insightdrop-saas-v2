@@ -1,14 +1,10 @@
 "use client";
 
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import { useTheme } from "@/lib/theme";
 import { formatCurrency } from "@/lib/utils";
 
 interface Props {
@@ -18,49 +14,37 @@ interface Props {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass rounded-xl px-4 py-3 text-xs">
-      <p className="text-ink-300 mb-1">{label}</p>
-      <p className="text-acid font-medium">{formatCurrency(payload[0]?.value ?? 0)}</p>
-      <p className="text-ink-400">{payload[1]?.value ?? 0} orders</p>
+    <div style={{ background: "var(--bg-raised)", border: "1px solid var(--border-bright)", borderRadius: 12, padding: "10px 14px", fontSize: 12 }}>
+      <p style={{ color: "var(--text-secondary)", marginBottom: 4 }}>{label}</p>
+      <p style={{ color: "var(--accent)", fontWeight: 600 }}>{formatCurrency(payload[0]?.value ?? 0)}</p>
+      <p style={{ color: "var(--text-tertiary)" }}>{payload[1]?.value ?? 0} orders</p>
     </div>
   );
 };
 
 export function MonthlySalesChart({ data }: Props) {
+  const { t } = useTheme();
+  const tickStyle = { fill: "var(--text-tertiary)", fontSize: 10, fontFamily: "'Outfit'" };
+
   return (
-    <div className="glass rounded-2xl p-6">
-      <h3 className="font-display font-semibold text-sm mb-1">Monthly Revenue Trend</h3>
-      <p className="text-ink-500 text-xs mb-5">Revenue over time</p>
-      <ResponsiveContainer width="100%" height={220}>
+    <div className="rounded-[18px] p-6 theme-transition" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-dim)" }}>
+      <h3 className="font-display font-semibold text-sm mb-1" style={{ color: "var(--text-primary)" }}>
+        {t("Monthly Revenue Trend", "اتجاه الإيرادات الشهرية")}
+      </h3>
+      <p className="text-xs mb-5" style={{ color: "var(--text-tertiary)" }}>{t("Revenue over time", "الإيرادات عبر الزمن")}</p>
+      <ResponsiveContainer width="100%" height={210}>
         <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
           <defs>
-            <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#C8FA64" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#C8FA64" stopOpacity={0} />
+            <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="var(--accent)" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-          <XAxis
-            dataKey="month"
-            tick={{ fill: "#9494A0", fontSize: 10 }}
-            tickFormatter={(v) => v.slice(5)}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: "#9494A0", fontSize: 10 }}
-            tickFormatter={(v) => `$${v >= 1000 ? (v / 1000).toFixed(0) + "k" : v}`}
-            axisLine={false}
-            tickLine={false}
-          />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+          <XAxis dataKey="month" tick={tickStyle} tickFormatter={(v) => v.slice(5)} axisLine={false} tickLine={false} />
+          <YAxis tick={tickStyle} tickFormatter={(v) => `$${v >= 1000 ? (v/1000).toFixed(0)+"k" : v}`} axisLine={false} tickLine={false} />
           <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="revenue"
-            stroke="#C8FA64"
-            strokeWidth={2}
-            fill="url(#revenueGrad)"
-          />
+          <Area type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={2.5} fill="url(#accGrad)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

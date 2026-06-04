@@ -4,103 +4,69 @@ import { useState } from "react";
 import { FileDown, FileSpreadsheet, Loader2 } from "lucide-react";
 import { downloadExport } from "@/lib/api";
 import { createClient } from "@/lib/supabase";
-import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/theme";
 
-interface Props {
-  file: File;
-}
-
-type ExportState = "idle" | "loading-pdf" | "loading-excel" | "done";
+interface Props { file: File; }
+type ExportState = "idle" | "loading-pdf" | "loading-excel";
 
 export function ExportButtons({ file }: Props) {
   const supabase = createClient();
+  const { t } = useTheme();
   const [state, setState] = useState<ExportState>("idle");
   const [error, setError] = useState<string | null>(null);
 
   async function triggerDownload(format: "pdf" | "excel") {
     setError(null);
     setState(format === "pdf" ? "loading-pdf" : "loading-excel");
-
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
-      if (!token) throw new Error("Session expired. Please sign in again.");
-
+      if (!token) throw new Error(t("Session expired.", "انتهت الجلسة."));
       const { blob, filename } = await downloadExport(file, token, format);
-
-      // Trigger browser download
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
-
-      setState("done");
-      setTimeout(() => setState("idle"), 2000);
+      setState("idle");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Export failed.");
+      setError(err instanceof Error ? err.message : t("Export failed.", "فشل التصدير."));
       setState("idle");
     }
   }
 
+  const busy = state !== "idle";
+
   return (
     <div className="space-y-2">
-      {/* Section header */}
-      <p className="text-xs text-ink-400 font-medium uppercase tracking-wider px-1">
-        Download
+      <p className="text-xs font-medium uppercase tracking-wider px-0.5" style={{ color: "var(--text-tertiary)" }}>
+        {t("Download", "تنزيل")}
       </p>
-
-      {/* Buttons row */}
-      <div className="flex gap-3">
-        {/* PDF Report */}
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => triggerDownload("pdf")}
-          disabled={state !== "idle"}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all",
-            "bg-coral/10 border border-coral/20 text-coral",
-            "hover:bg-coral/20 hover:border-coral/40",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
-          )}
+          disabled={busy}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+          style={{ background: "var(--rose-bg)", border: "1px solid rgba(240,96,128,.25)", color: "var(--rose)" }}
         >
-          {state === "loading-pdf" ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <FileDown size={15} />
-          )}
-          {state === "loading-pdf" ? "Generating…" : "PDF Report"}
+          {state === "loading-pdf" ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
+          {state === "loading-pdf" ? t("Generating…", "جارٍ التوليد…") : t("PDF Report", "تقرير PDF")}
         </button>
-
-        {/* Excel Export */}
         <button
           onClick={() => triggerDownload("excel")}
-          disabled={state !== "idle"}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all",
-            "bg-acid/10 border border-acid/20 text-acid",
-            "hover:bg-acid/20 hover:border-acid/40",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
-          )}
+          disabled={busy}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+          style={{ background: "var(--teal-bg)", border: "1px solid rgba(64,208,176,.25)", color: "var(--teal)" }}
         >
-          {state === "loading-excel" ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <FileSpreadsheet size={15} />
-          )}
-          {state === "loading-excel" ? "Generating…" : "Excel + Data"}
+          {state === "loading-excel" ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
+          {state === "loading-excel" ? t("Generating…", "جارٍ التوليد…") : t("Excel + Data", "Excel + البيانات")}
         </button>
       </div>
-
-      {/* Excel description */}
-      <p className="text-ink-500 text-xs px-1">
-        Excel includes 5 sheets: cleaned data, monthly summary, top products, regions & categories.
+      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+        {t("Excel: 5 sheets — cleaned data, monthly, products, regions, categories.", "Excel: 5 أوراق — بيانات منظفة، شهري، منتجات، مناطق، فئات.")}
       </p>
-
       {error && (
-        <p className="text-coral text-xs bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">
+        <p className="text-xs rounded-xl px-3 py-2" style={{ background: "var(--rose-bg)", color: "var(--rose)" }}>
           {error}
         </p>
       )}

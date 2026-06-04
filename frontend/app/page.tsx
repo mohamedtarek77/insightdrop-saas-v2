@@ -1,159 +1,206 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, Shield, Zap, BarChart2, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ThemeProvider, useTheme } from "@/lib/theme";
+import { Topbar } from "@/components/ui/Topbar";
+import { ArrowRight } from "lucide-react";
+
+function LandingContent() {
+  const { t } = useTheme();
+  const router = useRouter();
+
+  const features = [
+    {
+      num: "01",
+      titleEn: "Upload your file",
+      titleAr: "ارفع ملفك",
+      descEn:  "Drop any CSV or Excel export. No template required — columns are auto-detected.",
+      descAr:  "أرفع أي ملف CSV أو Excel. لا قالب مطلوب — نكتشف الأعمدة تلقائيًا.",
+    },
+    {
+      num: "02",
+      titleEn: "We crunch the numbers",
+      titleAr: "نحلل الأرقام",
+      descEn:  "ETL engine cleans and aggregates in-memory. Revenue, profit, trends — all in seconds.",
+      descAr:  "محرك ETL ينظف ويجمع البيانات في الذاكرة. إيرادات وأرباح واتجاهات — في ثوانٍ.",
+    },
+    {
+      num: "03",
+      titleEn: "Download your report",
+      titleAr: "حمّل تقريرك",
+      descEn:  "PDF analytics report or a styled 5-sheet Excel workbook. Data discarded immediately after.",
+      descAr:  "تقرير PDF أو مصنف Excel بـ5 أوراق منسقة. تُحذف البيانات فورًا بعد ذلك.",
+    },
+  ];
+
+  const pills = [
+    { icon: "⚡", en: "Results in <10s",        ar: "نتائج في أقل من 10 ثوانٍ" },
+    { icon: "🔒", en: "Zero data stored",        ar: "لا يُخزَّن أي بيانات"     },
+    { icon: "📊", en: "4 interactive charts",    ar: "4 رسوم بيانية"             },
+    { icon: "🌍", en: "GDPR compliant",           ar: "متوافق مع GDPR"            },
+    { icon: "📁", en: "CSV & Excel",              ar: "CSV و Excel"               },
+  ];
+
+  return (
+    <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
+      <Topbar />
+
+      {/* ── HERO ── */}
+      <section className="relative max-w-5xl mx-auto px-6 pt-28 pb-20 text-center overflow-hidden">
+        {/* Orb */}
+        <div
+          className="orb pointer-events-none"
+          style={{ width: 640, height: 640, top: -100, left: "50%", transform: "translateX(-50%)" }}
+        />
+
+        {/* Eyebrow */}
+        <div
+          className="animate-rise inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium mb-8 theme-transition"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border-mid)",
+            color: "var(--text-secondary)",
+          }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full animate-blink" style={{ background: "var(--accent)" }} />
+          {t("Zero data storage · GDPR ready", "لا تخزين للبيانات · متوافق مع GDPR")}
+        </div>
+
+        {/* Headline */}
+        <h1
+          className="animate-rise-1 font-display font-bold leading-[1.02] tracking-tight mb-6"
+          style={{ fontSize: "clamp(44px,7.5vw,88px)", color: "var(--text-primary)" }}
+        >
+          {t("Sales analytics", "تحليلات المبيعات")}<br />
+          <em className="not-italic" style={{ color: "var(--accent)" }}>
+            {t("without the baggage.", "بدون تعقيد.")}
+          </em>
+        </h1>
+
+        {/* Sub */}
+        <p
+          className="animate-rise-2 max-w-xl mx-auto text-lg font-light leading-relaxed mb-10"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {t(
+            "Upload your CSV or Excel. Get instant KPIs, charts & insights. Your data is processed in memory and ",
+            "ارفع ملف CSV أو Excel. احصل على مؤشرات أداء وتحليلات فورية. بياناتك تُعالَج في الذاكرة و"
+          )}
+          <strong style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+            {t("never stored on our servers.", "لا تُحفظ أبدًا على خوادمنا.")}
+          </strong>
+        </p>
+
+        {/* CTA */}
+        <div className="animate-rise-3 flex items-center justify-center gap-4 flex-wrap">
+          <button
+            onClick={() => router.push("/login")}
+            className="group inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-xl text-white transition-all accent-glow"
+            style={{ background: "var(--accent)", fontSize: 15 }}
+          >
+            {t("Start free analysis", "ابدأ التحليل مجانًا")}
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+          <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>
+            {t("No credit card required", "لا يلزم بطاقة ائتمان")}
+          </span>
+        </div>
+
+        {/* Pills */}
+        <div className="animate-rise-4 flex flex-wrap justify-center gap-3 mt-14">
+          {pills.map((p, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium theme-transition card-hover cursor-default"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-dim)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span>{p.icon}</span>
+              <span>{t(p.en, p.ar)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="max-w-5xl mx-auto px-6 pb-20">
+        <p
+          className="text-center font-mono text-xs tracking-widest uppercase mb-10"
+          style={{ color: "var(--text-tertiary)" }}
+        >
+          {t("How it works", "كيف يعمل")}
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="rounded-[18px] p-7 theme-transition card-hover"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-dim)",
+              }}
+            >
+              <div className="font-mono text-xs mb-4 opacity-60" style={{ color: "var(--accent)" }}>
+                {f.num} ——
+              </div>
+              <h3 className="font-display font-semibold text-lg mb-2" style={{ color: "var(--text-primary)" }}>
+                {t(f.titleEn, f.titleAr)}
+              </h3>
+              <p className="text-sm font-light leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                {t(f.descEn, f.descAr)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA BLOCK ── */}
+      <section className="max-w-2xl mx-auto px-6 pb-24 text-center">
+        <div
+          className="relative rounded-3xl p-14 overflow-hidden theme-transition"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-dim)" }}
+        >
+          {/* inner orb */}
+          <div
+            className="orb"
+            style={{ width: 400, height: 300, top: -80, left: "50%", transform: "translateX(-50%)" }}
+          />
+          <div className="relative">
+            <h2 className="font-display font-bold text-3xl mb-3 tracking-tight" style={{ color: "var(--text-primary)" }}>
+              {t("Ready to see your data differently?", "هل أنت مستعد لرؤية بياناتك بشكل مختلف؟")}
+            </h2>
+            <p className="text-sm mb-7" style={{ color: "var(--text-secondary)" }}>
+              {t(
+                "Join teams who trust InsightDrop for quick, private sales analytics.",
+                "انضم إلى الفرق التي تثق في InsightDrop لتحليلات مبيعات سريعة وخاصة."
+              )}
+            </p>
+            <button
+              onClick={() => router.push("/login")}
+              className="group inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-xl text-white transition-all accent-glow"
+              style={{ background: "var(--accent)", fontSize: 15 }}
+            >
+              {t("Get started free", "ابدأ مجانًا")}
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="text-center pb-10 font-mono text-xs" style={{ color: "var(--text-tertiary)" }}>
+        © 2025 InsightDrop · {t("Zero data storage · FastAPI + Next.js", "لا تخزين للبيانات · FastAPI + Next.js")}
+      </footer>
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-ink overflow-hidden">
-      {/* Background grid */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(200,250,100,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(200,250,100,0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-7xl mx-auto">
-        <span className="font-display font-bold text-xl tracking-tight">
-          Insight<span className="text-acid">Drop</span>
-        </span>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm text-ink-300 hover:text-ink-50 transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm bg-acid text-ink font-semibold px-4 py-2 rounded-lg hover:bg-acid-dim transition-colors"
-          >
-            Get started free
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-32 text-center">
-        <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-ink-300 mb-8 animate-fade-up">
-          <span className="w-1.5 h-1.5 rounded-full bg-acid animate-pulse2 inline-block" />
-          Zero data storage · GDPR ready · Free to start
-        </div>
-
-        <h1
-          className="font-display font-extrabold text-5xl md:text-7xl leading-[1.05] tracking-tight mb-6 animate-fade-up-delay-1"
-          style={{ animationFillMode: "both" }}
-        >
-          Sales analytics
-          <br />
-          <span className="text-gradient">without the baggage.</span>
-        </h1>
-
-        <p
-          className="text-ink-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up-delay-2"
-          style={{ animationFillMode: "both" }}
-        >
-          Upload your CSV or Excel. Get instant KPIs, charts, and insights.
-          Your data is processed in memory and{" "}
-          <strong className="text-ink-100">never stored on our servers</strong>.
-        </p>
-
-        <div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up-delay-3"
-          style={{ animationFillMode: "both" }}
-        >
-          <Link
-            href="/login"
-            className="group flex items-center gap-2 bg-acid text-ink font-semibold px-7 py-3.5 rounded-xl text-base hover:bg-acid-dim transition-all hover:scale-105 acid-glow"
-          >
-            Start free analysis
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <span className="text-ink-400 text-sm">No credit card required</span>
-        </div>
-      </section>
-
-      {/* Trust badges */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 mb-24">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: <Zap size={20} />, label: "Instant results", sub: "< 10 seconds" },
-            { icon: <Shield size={20} />, label: "Zero storage", sub: "Data never saved" },
-            { icon: <BarChart2 size={20} />, label: "8+ chart types", sub: "KPIs + visuals" },
-            { icon: <Lock size={20} />, label: "Private by design", sub: "GDPR compliant" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="glass rounded-2xl p-5 flex flex-col gap-2"
-              style={{ animation: `fadeUp 0.5s ${0.1 + i * 0.1}s ease both` }}
-            >
-              <span className="text-acid">{item.icon}</span>
-              <p className="font-display font-semibold text-sm text-ink-100">{item.label}</p>
-              <p className="text-ink-400 text-xs">{item.sub}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 mb-32">
-        <h2 className="font-display font-bold text-3xl text-center mb-12">
-          Three steps to clarity
-        </h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              step: "01",
-              title: "Upload your file",
-              desc: "Drop in any CSV or Excel export from your store, CRM, or ERP.",
-            },
-            {
-              step: "02",
-              title: "We crunch the numbers",
-              desc: "Our engine processes revenue, profit, trends, and top performers in seconds.",
-            },
-            {
-              step: "03",
-              title: "Read your dashboard",
-              desc: "Interactive charts and KPIs render instantly. Export or screenshot anything.",
-            },
-          ].map((item, i) => (
-            <div key={i} className="glass rounded-2xl p-6">
-              <div className="font-mono text-acid text-xs mb-3 opacity-60">{item.step}</div>
-              <h3 className="font-display font-semibold text-lg mb-2">{item.title}</h3>
-              <p className="text-ink-300 text-sm leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Footer */}
-      <section className="relative z-10 max-w-2xl mx-auto px-6 pb-24 text-center">
-        <div className="glass rounded-3xl p-10">
-          <h2 className="font-display font-bold text-3xl mb-3">
-            Ready to see your data differently?
-          </h2>
-          <p className="text-ink-300 mb-7 text-sm">
-            Join teams who trust InsightDrop for quick, private sales analytics.
-          </p>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 bg-acid text-ink font-semibold px-7 py-3.5 rounded-xl hover:bg-acid-dim transition-all hover:scale-105 acid-glow"
-          >
-            Start for free <ArrowRight size={18} />
-          </Link>
-        </div>
-      </section>
-
-      <footer className="relative z-10 text-center pb-8 text-ink-500 text-xs">
-        © {new Date().getFullYear()} InsightDrop · Zero data storage · Built with FastAPI & Next.js
-      </footer>
-    </div>
+    <ThemeProvider>
+      <LandingContent />
+    </ThemeProvider>
   );
 }
