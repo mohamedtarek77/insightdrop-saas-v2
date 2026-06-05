@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2, Clock } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Topbar } from "@/components/ui/Topbar";
 import { createClient } from "@/lib/supabase";
@@ -10,16 +10,32 @@ import { createClient } from "@/lib/supabase";
 type Mode = "login" | "signup";
 
 function LoginContent() {
-  const router = useRouter();
-  const { t }  = useTheme();
-  const [mode, setMode] = useState<Mode>("login");
-  const [email, setEmail]     = useState("");
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const { t }        = useTheme();
+  const supabase     = createClient();
+
+  const [mode,     setMode]     = useState<Mode>("login");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw]   = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
-  const [info,  setInfo]      = useState<string | null>(null);
-  const supabase = createClient();
+  const [showPw,   setShowPw]   = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
+  const [info,     setInfo]     = useState<string | null>(null);
+
+  const expired = searchParams.get("expired") === "1";
+
+  // If already logged in and NOT expired → go straight to dashboard
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && !expired) {
+        router.replace("/dashboard");
+      } else {
+        setChecking(false);
+      }
+    });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +44,10 @@ function LoginContent() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setInfo(t("Check your email to confirm your account.", "تحقق من بريدك الإلكتروني لتأكيد حسابك."));
+        setInfo(t(
+          "Check your email to confirm your account, then sign in.",
+          "تحقق من بريدك الإلكتروني لتأكيد حسابك، ثم سجّل الدخول."
+        ));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -49,6 +68,17 @@ function LoginContent() {
     });
   }
 
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-base)" }}>
+        <div
+          className="w-10 h-10 rounded-full animate-spin-slow"
+          style={{ border: "2px solid var(--border-dim)", borderTopColor: "var(--accent)" }}
+        />
+      </div>
+    );
+  }
+
   const inputStyle: React.CSSProperties = {
     width: "100%",
     background: "var(--bg-input)",
@@ -59,23 +89,29 @@ function LoginContent() {
     fontFamily: "'Outfit', sans-serif",
     fontSize: 14,
     outline: "none",
-    transition: "border-color var(--t-fast), box-shadow var(--t-fast)",
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 pt-14 relative" style={{ background: "var(--bg-base)" }}>
+    <div
+      className="min-h-screen flex items-center justify-center px-4 pt-14 relative"
+      style={{ background: "var(--bg-base)" }}
+    >
       <Topbar />
 
       {/* Orb */}
       <div
-        className="orb pointer-events-none"
+        className="orb pointer-events-none absolute"
         style={{ width: 500, height: 500, top: "50%", left: "50%", transform: "translate(-50%, -60%)" }}
       />
 
       <div className="relative z-10 w-full max-w-sm animate-rise">
+
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="font-display font-bold text-2xl tracking-tight" style={{ color: "var(--text-primary)" }}>
+          <div
+            className="font-display font-bold text-2xl tracking-tight"
+            style={{ color: "var(--text-primary)" }}
+          >
             Insight<em className="not-italic" style={{ color: "var(--accent)" }}>Drop</em>
           </div>
           <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>
@@ -84,6 +120,24 @@ function LoginContent() {
               : t("Create your account", "أنشئ حسابك")}
           </p>
         </div>
+
+        {/* Expired notice */}
+        {expired && (
+          <div
+            className="flex items-center gap-2.5 rounded-xl px-4 py-3 mb-4 text-sm"
+            style={{
+              background: "var(--gold-bg)",
+              border: "1px solid rgba(240,192,96,.25)",
+              color: "var(--gold)",
+            }}
+          >
+            <Clock size={14} className="shrink-0" />
+            {t(
+              "Your session expired after 3 days. Please sign in again.",
+              "انتهت جلستك بعد 3 أيام. يرجى تسجيل الدخول مرة أخرى."
+            )}
+          </div>
+        )}
 
         {/* Card */}
         <div
@@ -106,15 +160,17 @@ function LoginContent() {
                     : { background: "transparent", color: "var(--text-secondary)" }
                 }
               >
-                {m === "login" ? t("Sign in", "تسجيل الدخول") : t("Sign up", "إنشاء حساب")}
+                {m === "login"
+                  ? t("Sign in", "تسجيل الدخول")
+                  : t("Sign up", "إنشاء حساب")}
               </button>
             ))}
           </div>
 
-          {/* Google */}
+          {/* Google OAuth */}
           <button
             onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 text-sm font-medium mb-5 theme-transition"
+            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 text-sm font-medium mb-5 transition-all theme-transition"
             style={{
               background: "var(--bg-raised)",
               border: "1px solid var(--border-mid)",
@@ -140,7 +196,10 @@ function LoginContent() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: "var(--text-secondary)" }}>
+              <label
+                className="block text-xs font-medium uppercase tracking-wider mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("Email", "البريد الإلكتروني")}
               </label>
               <input
@@ -148,12 +207,22 @@ function LoginContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 style={inputStyle}
-                onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-light)"; }}
-                onBlur={(e)  => { e.target.style.borderColor = "var(--border-mid)"; e.target.style.boxShadow = "none"; }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "var(--accent)";
+                  e.target.style.boxShadow = "0 0 0 3px var(--accent-light)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "var(--border-mid)";
+                  e.target.style.boxShadow = "none";
+                }}
               />
             </div>
+
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider mb-1.5" style={{ color: "var(--text-secondary)" }}>
+              <label
+                className="block text-xs font-medium uppercase tracking-wider mb-1.5"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {t("Password", "كلمة المرور")}
               </label>
               <div className="relative">
@@ -162,8 +231,14 @@ function LoginContent() {
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   style={{ ...inputStyle, paddingRight: 40 }}
-                  onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-light)"; }}
-                  onBlur={(e)  => { e.target.style.borderColor = "var(--border-mid)"; e.target.style.boxShadow = "none"; }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "var(--accent)";
+                    e.target.style.boxShadow = "0 0 0 3px var(--accent-light)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "var(--border-mid)";
+                    e.target.style.boxShadow = "none";
+                  }}
                 />
                 <button
                   type="button" onClick={() => setShowPw(!showPw)}
@@ -176,12 +251,26 @@ function LoginContent() {
             </div>
 
             {error && (
-              <p className="text-xs rounded-xl px-3 py-2.5" style={{ background: "var(--rose-bg)", color: "var(--rose)", border: "1px solid rgba(240,96,128,0.2)" }}>
+              <p
+                className="text-xs rounded-xl px-3 py-2.5"
+                style={{
+                  background: "var(--rose-bg)",
+                  color: "var(--rose)",
+                  border: "1px solid rgba(240,96,128,.2)",
+                }}
+              >
                 {error}
               </p>
             )}
             {info && (
-              <p className="text-xs rounded-xl px-3 py-2.5" style={{ background: "var(--teal-bg)", color: "var(--teal)", border: "1px solid rgba(64,208,176,0.2)" }}>
+              <p
+                className="text-xs rounded-xl px-3 py-2.5"
+                style={{
+                  background: "var(--teal-bg)",
+                  color: "var(--teal)",
+                  border: "1px solid rgba(64,208,176,.2)",
+                }}
+              >
                 {info}
               </p>
             )}
@@ -201,11 +290,27 @@ function LoginContent() {
           </form>
         </div>
 
-        <p className="text-center text-xs mt-5" style={{ color: "var(--text-tertiary)" }}>
+        {/* 3-day session note */}
+        <div
+          className="flex items-center justify-center gap-1.5 mt-4 text-xs"
+          style={{ color: "var(--text-tertiary)" }}
+        >
+          <Clock size={11} />
+          {t(
+            "Sessions are kept for 3 days, then require re-login.",
+            "تبقى الجلسة 3 أيام، ثم تحتاج لإعادة تسجيل الدخول."
+          )}
+        </div>
+
+        <p className="text-center text-xs mt-3" style={{ color: "var(--text-tertiary)" }}>
           {t("By continuing you agree to our ", "بالمتابعة فإنك توافق على ")}
-          <span className="underline cursor-pointer" style={{ color: "var(--text-secondary)" }}>{t("Terms", "الشروط")}</span>
+          <span className="underline cursor-pointer" style={{ color: "var(--text-secondary)" }}>
+            {t("Terms", "الشروط")}
+          </span>
           {t(" and ", " و ")}
-          <span className="underline cursor-pointer" style={{ color: "var(--text-secondary)" }}>{t("Privacy Policy", "سياسة الخصوصية")}</span>.
+          <span className="underline cursor-pointer" style={{ color: "var(--text-secondary)" }}>
+            {t("Privacy Policy", "سياسة الخصوصية")}
+          </span>.
         </p>
       </div>
     </div>
