@@ -94,7 +94,7 @@ export async function middleware(request: NextRequest) {
     redirectUrl.pathname = "/dashboard";
 
     return NextResponse.redirect(redirectUrl);
-  }
+  }    
 
   return supabaseResponse;
 }
