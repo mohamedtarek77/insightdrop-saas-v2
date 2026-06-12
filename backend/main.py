@@ -46,7 +46,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://*.vercel.app",
+        "https://insightdrop-analytics.vercel.app/",
         # Add your production domain here, e.g. "https://yourdomain.com"
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
