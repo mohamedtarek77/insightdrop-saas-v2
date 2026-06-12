@@ -9,5 +9,7 @@ services:
         sync: false   # Set this in the Render dashboard
       - key: SUPABASE_URL
         sync: false
+
     healthCheckPath: /health/
     autoDeploy: true
+    pythonVersion: "3.11.9"
