@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Topbar } from "@/components/ui/Topbar";
 import { ArrowRight } from "lucide-react";
+import { Suspense } from "react";
 
 function LandingContent() {
   const { t } = useTheme();
@@ -200,7 +201,10 @@ function LandingContent() {
 export default function HomePage() {
   return (
     <ThemeProvider>
+                  <Suspense fallback={null}>
+
       <LandingContent />
+      </Suspense>
     </ThemeProvider>
   );
 }

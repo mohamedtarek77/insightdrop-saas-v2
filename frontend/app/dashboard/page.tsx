@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 
 
 
@@ -20,6 +19,7 @@ import { RegionSalesChart }   from "@/components/charts/RegionSalesChart";
 import { CategoryChart }      from "@/components/charts/CategoryChart";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { Suspense } from "react";
 
 type Stage    = "idle" | "loading" | "done" | "error";
 type AuthState = "checking" | "authed" | "unauthed";
@@ -391,7 +391,9 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <ThemeProvider>
-      <DashboardContent />
+      <Suspense fallback={null}>
+        <DashboardContent />
+      </Suspense>
     </ThemeProvider>
   );
 }

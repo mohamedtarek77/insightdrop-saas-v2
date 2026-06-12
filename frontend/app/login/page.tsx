@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2, Clock } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { Topbar } from "@/components/ui/Topbar";
 import { createClient } from "@/lib/supabase";
+import { Suspense } from "react";
 
 type Mode = "login" | "signup";
 
@@ -320,7 +321,10 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <ThemeProvider>
+            <Suspense fallback={null}>
+
       <LoginContent />
+      </Suspense>
     </ThemeProvider>
   );
 }
