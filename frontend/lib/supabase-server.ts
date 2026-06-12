@@ -27,19 +27,36 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
 
-        setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
+        // setAll(cookiesToSet: CookieToSet[]) {
+        //   cookiesToSet.forEach(({ name, value }) => {
+        //     request.cookies.set(name, value);
+        //   });
 
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+        //   supabaseResponse = NextResponse.next({
+        //     request,
+        //   });
 
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
-          });
-        },
+        //   cookiesToSet.forEach(({ name, value, options }) => {
+        //     supabaseResponse.cookies.set(name, value, options);
+        //   });
+        // },
+
+setAll(
+  cookiesToSet: Array<{
+    name: string;
+    value: string;
+    options?: Record<string, any>;
+  }>
+) {
+  cookiesToSet.forEach(({ name, value, options }) => {
+    request.cookies.set(name, value);
+
+    supabaseResponse.cookies.set(name, value, options);
+  });
+}
+
+
+
       },
     }
   );
