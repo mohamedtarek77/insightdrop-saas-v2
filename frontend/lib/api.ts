@@ -13,7 +13,7 @@ export interface AnalyticsResponse {
     top_products: { product: string; revenue: number; quantity: number }[];
     region_sales: { region: string; revenue: number; orders: number }[];
     category_sales: {
-      category: string;
+      category: string;   
       revenue: number;
       profit: number;
       orders: number;
