@@ -1,28 +1,16 @@
-
-// lib/supabase.ts
 import { createBrowserClient } from "@supabase/ssr";
 
+/**
+ * Browser-side Supabase client.
+ * Do NOT pass custom cookieOptions.name — it must match the default
+ * `sb-<project-ref>-auth-token` that the server/middleware expect.
+ */
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: {
-        name: "sb-auth-token",   // custom short name
-        sameSite: "lax",
-        secure: false,           // false for localhost
-        maxAge: 60 * 60 * 24 * 3,
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
-
-
-
-
-
-
-
 
 
 
