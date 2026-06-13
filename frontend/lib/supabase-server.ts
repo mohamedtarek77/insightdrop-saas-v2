@@ -41,20 +41,34 @@ export async function middleware(request: NextRequest) {
         //   });
         // },
 
-setAll(
-  cookiesToSet: Array<{
-    name: string;
-    value: string;
-    options?: Record<string, any>;
-  }>
-) {
-  cookiesToSet.forEach(({ name, value, options }) => {
-    request.cookies.set(name, value);
+// setAll(
+//   cookiesToSet: Array<{
+//     name: string;
+//     value: string;
+//     options?: Record<string, any>;
+//   }>
+// ) {
+//   cookiesToSet.forEach(({ name, value, options }) => {
+//     request.cookies.set(name, value);
 
-    supabaseResponse.cookies.set(name, value, options);
-  });
-}
+//     supabaseResponse.cookies.set(name, value, options);
+//   });
+// }
 
+
+
+
+setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, any> }>) {
+  cookiesToSet.forEach(({ name, value }) =>
+    request.cookies.set(name, value)
+  );
+
+  supabaseResponse = NextResponse.next({ request }); // ← recreate with updated request
+
+  cookiesToSet.forEach(({ name, value, options }) =>
+    supabaseResponse.cookies.set(name, value, options)
+  );
+},
 
 
       },

@@ -82,9 +82,34 @@ useEffect(() => {
           "تحقق من بريدك الإلكتروني لتأكيد حسابك، ثم سجّل الدخول."
         ));
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        router.push("/dashboard");
+
+
+// const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+// if (error) throw error;
+
+// if (data.session) {
+//   // Force a full page navigation so the browser has the cookies set
+//   // before middleware runs, instead of a client-side push
+//   window.location.href = "/dashboard";
+// } else {
+//   throw new Error("No session returned");
+// }
+
+
+
+const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+// ADD THESE LINES:
+console.log("LOGIN RESULT:", JSON.stringify({ 
+  user: data?.user?.email, 
+  session: !!data?.session,
+  accessToken: data?.session?.access_token?.slice(0,20),
+  error: error?.message 
+}));
+
+if (error) throw error;
+window.location.href = "/dashboard";
+
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("Authentication failed.", "فشل المصادقة."));
