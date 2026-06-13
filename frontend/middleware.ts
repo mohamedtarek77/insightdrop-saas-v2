@@ -95,11 +95,21 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Redirect already-logged-in users away from /login ───────────────────
-  if (user && path === "/login") {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
-    return NextResponse.redirect(redirectUrl);
-  }
+  // if (user && path === "/login") {
+  //   const redirectUrl = request.nextUrl.clone();
+  //   redirectUrl.pathname = "/dashboard";
+  //   return NextResponse.redirect(redirectUrl);
+  // }
+
+
+// ── Redirect already-logged-in users away from /login ───────────────────
+// Exception: allow through if ?expired=1 (session was just force-signed-out)
+const isExpiredParam = request.nextUrl.searchParams.get("expired") === "1";
+if (user && path === "/login" && !isExpiredParam) {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = "/dashboard";
+  return NextResponse.redirect(redirectUrl);
+}
 
   return supabaseResponse;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect  ,useMemo} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, Clock } from "lucide-react";
 import { ThemeProvider, useTheme } from "@/lib/theme";
@@ -14,7 +14,8 @@ function LoginContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { t }        = useTheme();
-  const supabase     = createClient();
+  // const supabase     = createClient();
+const supabase = useMemo(() => createClient(), []);
 
   const [mode,     setMode]     = useState<Mode>("login");
   const [email,    setEmail]    = useState("");
@@ -28,15 +29,46 @@ function LoginContent() {
   const expired = searchParams.get("expired") === "1";
 
   // If already logged in and NOT expired → go straight to dashboard
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user && !expired) {
-        router.replace("/dashboard");
-      } else {
-        setChecking(false);
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   supabase.auth.getSession().then(({ data: { session } }) => {
+  //     if (session?.user && !expired) {
+  //       router.replace("/dashboard");
+  //     } else {
+  //       setChecking(false);
+  //     }
+  //   });
+  // }, []);
+
+
+useEffect(() => {
+  const timeout = setTimeout(() => setChecking(false), 3000); // fallback
+
+  // supabase.auth.getSession().then(({ data: { session } }) => {
+  //   clearTimeout(timeout);
+  //   if (session?.user && !expired) {
+  //     router.replace("/dashboard");
+  //   } else {
+  //     setChecking(false);
+  //   }
+  // }
+
+
+  supabase.auth.getUser().then(({ data: { user } }) => {
+  if (user && !expired) {
+    router.replace("/dashboard");
+  } else {
+    setChecking(false);
+  }
+}
+
+
+).catch(() => {
+    clearTimeout(timeout);
+    setChecking(false);
+  });
+
+  return () => clearTimeout(timeout);
+}, [expired]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
